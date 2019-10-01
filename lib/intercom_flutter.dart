@@ -10,6 +10,8 @@ class Intercom {
   static const MethodChannel _channel =
       const MethodChannel('maido.io/intercom');
 
+  static const stream = const EventChannel('maido.io/intercom/stream');
+
   static Future<dynamic> initialize(
     String appId, {
     String androidApiKey,
@@ -120,5 +122,9 @@ class Intercom {
   static Future<dynamic> displayMessageComposer(String message) {
     return _channel
         .invokeMethod('displayMessageComposer', {'message': message});
+  }
+
+  static Stream<int> getUnreadConversationsChangeStream() {
+    return stream.receiveBroadcastStream().cast<int>();
   }
 }

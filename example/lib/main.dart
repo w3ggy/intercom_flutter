@@ -20,11 +20,24 @@ class SampleApp extends StatelessWidget {
           title: const Text('Intercom example app'),
         ),
         body: Center(
-          child: FlatButton(
-            onPressed: () {
-              Intercom.displayMessenger();
-            },
-            child: Text('Show messenger'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FlatButton(
+                onPressed: () {
+                  Intercom.displayMessenger();
+                },
+                child: Text('Show messenger'),
+              ),
+              StreamBuilder(
+                stream: Intercom.getUnreadConversationsChangeStream(),
+                initialData: 0,
+                builder: (context, AsyncSnapshot<int> snapshot) {
+                  return Text(
+                      'Unread Conversations count: ${snapshot.data.toString()}');
+                },
+              ),
+            ],
           ),
         ),
       ),

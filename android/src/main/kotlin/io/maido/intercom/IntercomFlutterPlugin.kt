@@ -1,47 +1,70 @@
 package io.maido.intercom
 
 import android.app.Application
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.intercom.android.sdk.Company
 import io.intercom.android.sdk.Intercom
+import io.intercom.android.sdk.UnreadConversationCountListener
 import io.intercom.android.sdk.UserAttributes
 import io.intercom.android.sdk.identity.Registration
 import io.intercom.android.sdk.push.IntercomPushClient
 
-
-
-class IntercomFlutterPlugin(private val application: Application) : MethodCallHandler {
+class IntercomFlutterPlugin(
+    private val application: Application
+) : MethodCallHandler {
   companion object {
+    private val unreadConversationCountListener =
+      UnreadConversationCountListener { unreadCount -> channelEvents?.success(unreadCount) }
+    private var channelEvents: EventChannel.EventSink? = null
+
     @JvmStatic
     fun registerWith(registrar: Registrar) {
       val channel = MethodChannel(registrar.messenger(), "maido.io/intercom")
       channel.setMethodCallHandler(IntercomFlutterPlugin(registrar.context() as Application))
+      val stream = EventChannel(registrar.messenger(), "maido.io/intercom/stream")
+      stream.setStreamHandler(object : EventChannel.StreamHandler {
 
+        override fun onListen(
+            params: Any?,
+            events: EventChannel.EventSink?
+        ) {
+          channelEvents = events
+        }
+
+        override fun onCancel(params: Any?) {
+          channelEvents = null
+        }
+      })
     }
   }
 
-  override fun onMethodCall(call: MethodCall, result: Result) {
+  override fun onMethodCall(
+      call: MethodCall,
+      result: Result
+  ) {
     when {
       call.method == "initialize" -> {
         val apiKey = call.argument<String>("androidApiKey")
         val appId = call.argument<String>("appId")
         Intercom.initialize(application, apiKey, appId)
+        Intercom.client().addUnreadConversationCountListener(unreadConversationCountListener)
         result.success("Intercom initialized")
       }
       call.method == "setUserHash" -> {
         val userHash = call.argument<String>("userHash")
-        if(userHash != null) {
+        if (userHash != null) {
           Intercom.client().setUserHash(userHash);
           result.success("User hash added")
         }
       }
       call.method == "registerIdentifiedUserWithUserId" -> {
         val userId = call.argument<String>("userId")
-        if(userId != null) {
+        if (userId != null) {
           var registration = Registration.create()
           registration = registration.withUserId(userId)
           Intercom.client().registerIdentifiedUser(registration)
@@ -50,7 +73,7 @@ class IntercomFlutterPlugin(private val application: Application) : MethodCallHa
       }
       call.method == "registerIdentifiedUserWithEmail" -> {
         val email = call.argument<String>("email")
-        if(email != null) {
+        if (email != null) {
           var registration = Registration.create()
           registration = registration.withEmail(email)
           Intercom.client().registerIdentifiedUser(registration)
@@ -63,11 +86,12 @@ class IntercomFlutterPlugin(private val application: Application) : MethodCallHa
       }
       call.method == "logout" -> {
         Intercom.client().logout()
+        Intercom.client().removeUnreadConversationCountListener(unreadConversationCountListener)
         result.success("logout")
       }
       call.method == "setLauncherVisibility" -> {
         val visibility = call.argument<String>("visibility")
-        if(visibility != null) {
+        if (visibility != null) {
           Intercom.client().setLauncherVisibility(Intercom.Visibility.valueOf(visibility))
           result.success("Showing launcher: $visibility")
         }
@@ -82,7 +106,7 @@ class IntercomFlutterPlugin(private val application: Application) : MethodCallHa
       }
       call.method == "setInAppMessagesVisibility" -> {
         val visibility = call.argument<String>("visibility")
-        if(visibility != null) {
+        if (visibility != null) {
           Intercom.client().setInAppMessageVisibility(Intercom.Visibility.valueOf(visibility))
           result.success("Showing in app messages: $visibility")
         }
@@ -120,7 +144,7 @@ class IntercomFlutterPlugin(private val application: Application) : MethodCallHa
           userAttributes.withCompany(icmCompany.build())
         }
         if (customAttributes != null) {
-          for((key, value) in customAttributes){
+          for ((key, value) in customAttributes) {
             userAttributes.withCustomAttribute(key, value)
           }
         }
@@ -130,7 +154,7 @@ class IntercomFlutterPlugin(private val application: Application) : MethodCallHa
       call.method == "logEvent" -> {
         val name = call.argument<String>("name")
         val metaData = call.argument<Map<String, Any>>("metaData")
-        if(name != null) {
+        if (name != null) {
           Intercom.client().logEvent(name, metaData);
           result.success("Logged event")
         }
@@ -139,7 +163,7 @@ class IntercomFlutterPlugin(private val application: Application) : MethodCallHa
       call.method == "sendTokenToIntercom" -> {
         val token = call.argument<String>("token")
         val metaData = call.argument<Map<String, Any>>("metaData")
-        if(token != null) {
+        if (token != null) {
           IntercomPushClient().sendTokenToIntercom(application, token)
 
           result.success("Token sent to Intercom")
