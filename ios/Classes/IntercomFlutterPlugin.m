@@ -1,13 +1,23 @@
 #import "IntercomFlutterPlugin.h"
 #import "Intercom.h"
 
+IntercomStreamChannelListener* listener;
+
 @implementation IntercomFlutterPlugin
+
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
+    listener = [IntercomStreamChannelListener new];
+    
     IntercomFlutterPlugin* instance = [[IntercomFlutterPlugin alloc] init];
     FlutterMethodChannel* channel =
     [FlutterMethodChannel methodChannelWithName:@"maido.io/intercom"
                                 binaryMessenger:[registrar messenger]];
     [registrar addMethodCallDelegate:instance channel:channel];
+    
+    FlutterEventChannel* channelEvents =
+    [FlutterEventChannel eventChannelWithName:@"maido.io/intercom/stream"
+                                binaryMessenger:[registrar messenger]];
+    [channelEvents setStreamHandler:listener];
 }
 
 - (void) handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result{
@@ -15,6 +25,10 @@
         NSString *iosApiKey = call.arguments[@"iosApiKey"];
         NSString *appId = call.arguments[@"appId"];
         [Intercom setApiKey:iosApiKey forAppId:appId];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(receiveTestNotification:)
+        name:IntercomUnreadConversationCountDidChangeNotification
+        object:nil];
         result(@"Initialized Intercom");
     }
     else if([@"registerUnidentifiedUser" isEqualToString:call.method]) {
@@ -93,6 +107,7 @@
     }
     else if([@"logout" isEqualToString:call.method]) {
         [Intercom logout];
+        [[NSNotificationCenter defaultCenter] removeObserver:self];
         result(@"Logged out");
     }
     else if ([@"logEvent" isEqualToString:call.method]) {
@@ -121,5 +136,14 @@
     else {
         result(FlutterMethodNotImplemented);
     }
+}
+
+- (void) receiveTestNotification:(NSNotification *) notification
+{
+    if ([[notification name] isEqualToString:IntercomUnreadConversationCountDidChangeNotification]) {
+        NSUInteger count = [Intercom unreadConversationCount];
+        [listener emit:count];
+    }
+        
 }
 @end
