@@ -31,7 +31,7 @@ class SampleApp extends StatelessWidget {
               ),
               StreamBuilder(
                 stream: Intercom.getUnreadConversationsChangeStream(),
-                initialData: 0,
+                initialData: -1,
                 builder: (context, AsyncSnapshot<int> snapshot) {
                   return Text(
                       'Unread Conversations count: ${snapshot.data.toString()}');
