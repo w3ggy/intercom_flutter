@@ -34,9 +34,11 @@ class IntercomFlutterPlugin(
             events: EventChannel.EventSink?
         ) {
           channelEvents = events
+          Intercom.client().addUnreadConversationCountListener(unreadConversationCountListener)
         }
 
         override fun onCancel(params: Any?) {
+          Intercom.client().removeUnreadConversationCountListener(unreadConversationCountListener)
           channelEvents = null
         }
       })
@@ -52,7 +54,6 @@ class IntercomFlutterPlugin(
         val apiKey = call.argument<String>("androidApiKey")
         val appId = call.argument<String>("appId")
         Intercom.initialize(application, apiKey, appId)
-        Intercom.client().addUnreadConversationCountListener(unreadConversationCountListener)
         result.success("Intercom initialized")
       }
       call.method == "setUserHash" -> {
@@ -86,7 +87,6 @@ class IntercomFlutterPlugin(
       }
       call.method == "logout" -> {
         Intercom.client().logout()
-        Intercom.client().removeUnreadConversationCountListener(unreadConversationCountListener)
         result.success("logout")
       }
       call.method == "setLauncherVisibility" -> {
