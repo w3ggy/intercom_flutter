@@ -25,10 +25,6 @@ IntercomStreamChannelListener* listener;
         NSString *iosApiKey = call.arguments[@"iosApiKey"];
         NSString *appId = call.arguments[@"appId"];
         [Intercom setApiKey:iosApiKey forAppId:appId];
-        [[NSNotificationCenter defaultCenter] addObserver:self
-        selector:@selector(receiveTestNotification:)
-        name:IntercomUnreadConversationCountDidChangeNotification
-        object:nil];
         result(@"Initialized Intercom");
     }
     else if([@"registerUnidentifiedUser" isEqualToString:call.method]) {
@@ -107,7 +103,6 @@ IntercomStreamChannelListener* listener;
     }
     else if([@"logout" isEqualToString:call.method]) {
         [Intercom logout];
-        [[NSNotificationCenter defaultCenter] removeObserver:self];
         result(@"Logged out");
     }
     else if ([@"logEvent" isEqualToString:call.method]) {
@@ -136,14 +131,5 @@ IntercomStreamChannelListener* listener;
     else {
         result(FlutterMethodNotImplemented);
     }
-}
-
-- (void) receiveTestNotification:(NSNotification *) notification
-{
-    if ([[notification name] isEqualToString:IntercomUnreadConversationCountDidChangeNotification]) {
-        NSUInteger count = [Intercom unreadConversationCount];
-        [listener emit:count];
-    }
-        
 }
 @end
