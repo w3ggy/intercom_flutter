@@ -1,16 +1,16 @@
 PODS:
   - Flutter (1.0.0)
-  - Intercom (5.5.0)
+  - Intercom (6.0.0)
   - "intercom_flutter (2.0.5+2)":
     - Flutter
-    - Intercom (~> 5.5.0)
+    - Intercom (~> 6.0.0)
 
 DEPENDENCIES:
   - Flutter (from `.symlinks/flutter/ios`)
   - intercom_flutter (from `.symlinks/plugins/intercom_flutter/ios`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  https://github.com/CocoaPods/Specs.git:
     - Intercom
 
 EXTERNAL SOURCES:
@@ -21,9 +21,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  Intercom: 4da298d6a1f6b9612fff9db4134c6273ff64af64
-  intercom_flutter: 71dff3d686b66a477f647ed16bcde3b7184908d0
+  Intercom: 04aa591f0bd35f0405a7d9d5dac39ba91affee27
+  intercom_flutter: c57f1c1a6294e4d9b74c8ea5294f0511bb1cac4c
 
 PODFILE CHECKSUM: 392a695225479ec66ab171f471d944e1b705a3e8
 
-COCOAPODS: 1.7.5
+COCOAPODS: 1.8.4
